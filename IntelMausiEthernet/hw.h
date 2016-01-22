@@ -87,10 +87,11 @@ struct e1000_hw;
 #define E1000_DEV_ID_PCH_I218_V2		0x15A1
 #define E1000_DEV_ID_PCH_I218_LM3		0x15A2	/* Wildcat Point PCH */
 #define E1000_DEV_ID_PCH_I218_V3		0x15A3	/* Wildcat Point PCH */
-#define E1000_DEV_ID_PCH_SPT_I219_LM		0x156F	/* SPT PCH */		
-#define E1000_DEV_ID_PCH_SPT_I219_V		0x1570	/* SPT PCH */		
-#define E1000_DEV_ID_PCH_SPT_I219_LM2		0x15B7	/* SPT-H PCH */		
+#define E1000_DEV_ID_PCH_SPT_I219_LM		0x156F	/* SPT PCH */
+#define E1000_DEV_ID_PCH_SPT_I219_V		0x1570	/* SPT PCH */
+#define E1000_DEV_ID_PCH_SPT_I219_LM2		0x15B7	/* SPT-H PCH */
 #define E1000_DEV_ID_PCH_SPT_I219_V2		0x15B8	/* SPT-H PCH */
+#define E1000_DEV_ID_PCH_LBG_I219_LM3		0x15B9	/* LBG PCH */
 
 #define E1000_REVISION_4	4
 
@@ -107,7 +108,9 @@ enum e1000_mac_type {
 	e1000_82583,
     
 #if DISABLED_CODE
+
 	e1000_80003es2lan,
+    
 #endif /* DISABLED_CODE */
 
 	e1000_ich8lan,
@@ -693,8 +696,14 @@ struct e1000_hw {
 	struct e1000_host_mng_dhcp_cookie mng_cookie;
 
 	union {
-		//struct e1000_dev_spec_82571 e82571;
-		//struct e1000_dev_spec_80003es2lan e80003es2lan;
+        
+#if DISABLED_CODE
+
+		struct e1000_dev_spec_82571 e82571;
+		struct e1000_dev_spec_80003es2lan e80003es2lan;
+        
+#endif /* DISABLED_CODE */
+
 		struct e1000_dev_spec_ich8lan ich8lan;
 	} dev_spec;
 };

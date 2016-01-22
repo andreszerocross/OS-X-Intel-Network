@@ -1061,16 +1061,22 @@ static s32 e1000_platform_pm_pch_lpt(struct e1000_hw *hw, bool link)
 		lat_enc = (u16)((scale << PCI_LTR_SCALE_SHIFT) | value);
 
 		/* Determine the maximum latency tolerated by the platform */
+        
 #if DISABLED_CODE
+
 		pci_read_config_word(hw->adapter->pdev, E1000_PCI_LTR_CAP_LPT,
 				     &max_snoop);
 		pci_read_config_word(hw->adapter->pdev,
 				     E1000_PCI_LTR_CAP_LPT + 2, &max_nosnoop);
+        
 #else
+        
         max_snoop = hw->adapter->pdev->maxSnoop;
         max_nosnoop = hw->adapter->pdev->maxNoSnoop;
+        
 #endif /* DISABLED_CODE */
-		max_ltr_enc = max_t(u16, max_snoop, max_nosnoop);
+
+        max_ltr_enc = max_t(u16, max_snoop, max_nosnoop);
 
 		if (lat_enc > max_ltr_enc)
 			lat_enc = max_ltr_enc;
@@ -1516,8 +1522,6 @@ static s32 e1000_check_for_copper_link_ich8lan(struct e1000_hw *hw)
 	/* Clear link partner's EEE ability */
 	hw->dev_spec.ich8lan.eee_lp_ability = 0;
 
-#if DISABLED_CODE
-
 	/* FEXTNVM6 K1-off workaround */
 	if (hw->mac.type == e1000_pch_spt) {
 		u32 pcieanacfg = er32(PCIEANACFG);
@@ -1530,8 +1534,6 @@ static s32 e1000_check_for_copper_link_ich8lan(struct e1000_hw *hw)
 
 		ew32(FEXTNVM6, fextnvm6);
 	}
-
-#endif /* DISABLED_CODE */
 
 	if (!link)
 		return 0;	/* No link detected */
@@ -1642,7 +1644,7 @@ static s32 e1000_get_variants_ich8lan(struct e1000_adapter *adapter)
 	    ((adapter->hw.mac.type >= e1000_pch2lan) &&
 	     (!(er32(CTRL_EXT) & E1000_CTRL_EXT_LSECCK)))) {
 		adapter->flags &= ~FLAG_HAS_JUMBO_FRAMES;
-		adapter->max_hw_frame_size = ETH_FRAME_LEN + ETH_FCS_LEN;
+		adapter->max_hw_frame_size = VLAN_ETH_FRAME_LEN + ETH_FCS_LEN;
 
 		hw->mac.ops.blink_led = NULL;
 	}
@@ -1659,7 +1661,7 @@ static s32 e1000_get_variants_ich8lan(struct e1000_adapter *adapter)
 	return 0;
 }
 
-//static DEFINE_MUTEX(nvm_mutex);
+static DEFINE_MUTEX(nvm_mutex);
 
 /**
  *  e1000_acquire_nvm_ich8lan - Acquire NVM mutex
@@ -1997,7 +1999,7 @@ static s32 e1000_check_reset_block_ich8lan(struct e1000_hw *hw)
 	int i = 0;
 
 	while ((blocked = !(er32(FWSM) & E1000_ICH_FWSM_RSPCIPHY)) &&
-	       (i++ < 10))
+	       (i++ < 30))
 		usleep_range(10000, 20000);
 	return blocked ? E1000_BLK_PHY_RESET : 0;
 }
@@ -3106,24 +3108,45 @@ static s32 e1000_valid_nvm_bank_detect_ich8lan(struct e1000_hw *hw, u32 *bank)
 	struct e1000_nvm_info *nvm = &hw->nvm;
 	u32 bank1_offset = nvm->flash_bank_size * sizeof(u16);
 	u32 act_offset = E1000_ICH_NVM_SIG_WORD * 2 + 1;
+	u32 nvm_dword = 0;
 	u8 sig_byte = 0;
 	s32 ret_val;
 
 	switch (hw->mac.type) {
-		/* In SPT, read from the CTRL_EXT reg instead of
-		 * accessing the sector valid bits from the nvm
-		 */
 	case e1000_pch_spt:
-		*bank = er32(CTRL_EXT)
-		    & E1000_CTRL_EXT_NVMVS;
-		if ((*bank == 0) || (*bank == 1)) {
-			e_dbg("ERROR: No valid NVM bank present\n");
-			return -E1000_ERR_NVM;
-		} else {
-			*bank = *bank - 2;
+		bank1_offset = nvm->flash_bank_size;
+		act_offset = E1000_ICH_NVM_SIG_WORD;
+
+		/* set bank to 0 in case flash read fails */
+		*bank = 0;
+
+		/* Check bank 0 */
+		ret_val = e1000_read_flash_dword_ich8lan(hw, act_offset,
+							 &nvm_dword);
+		if (ret_val)
+			return ret_val;
+		sig_byte = (u8)((nvm_dword & 0xFF00) >> 8);
+		if ((sig_byte & E1000_ICH_NVM_VALID_SIG_MASK) ==
+		    E1000_ICH_NVM_SIG_VALUE) {
+			*bank = 0;
 			return 0;
 		}
-		break;
+
+		/* Check bank 1 */
+		ret_val = e1000_read_flash_dword_ich8lan(hw, act_offset +
+							 bank1_offset,
+							 &nvm_dword);
+		if (ret_val)
+			return ret_val;
+		sig_byte = (u8)((nvm_dword & 0xFF00) >> 8);
+		if ((sig_byte & E1000_ICH_NVM_VALID_SIG_MASK) ==
+		    E1000_ICH_NVM_SIG_VALUE) {
+			*bank = 1;
+			return 0;
+		}
+
+		e_dbg("ERROR: No valid NVM bank present\n");
+		return -E1000_ERR_NVM;
 	case e1000_ich8lan:
 	case e1000_ich9lan:
 		eecd = er32(EECD);
@@ -5760,7 +5783,7 @@ const struct e1000_info e1000_ich8_info = {
 				  | FLAG_HAS_FLASH
 				  | FLAG_APME_IN_WUC,
 	.pba			= 8,
-	.max_hw_frame_size	= ETH_FRAME_LEN + ETH_FCS_LEN,
+	.max_hw_frame_size	= VLAN_ETH_FRAME_LEN + ETH_FCS_LEN,
 	.get_variants		= e1000_get_variants_ich8lan,
 	.mac_ops		= &ich8_mac_ops,
 	.phy_ops		= &ich8_phy_ops,

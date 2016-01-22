@@ -58,8 +58,8 @@ s32 e1000e_get_bus_info_pcie(struct e1000_hw *hw)
 #else
 
 s32 e1000e_get_bus_info_pcie(struct e1000_hw *hw)
-{    
-	return 0;
+{
+    return 0;
 }
 
 #endif /* DISABLED_CODE */
