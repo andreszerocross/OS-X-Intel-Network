@@ -1,3 +1,25 @@
+## Fork of Mieze's Intel Mausi Network Driver by RehabMan
+
+### How to Install:
+
+Install to /S/L/E or /L/E using your favorite kext installer.
+
+Or if using during installation, copy the kext to EFI/Clover/kexts/Other.
+
+There are no real changes in this repo.  I only forked it so I could have a build on bitbucket for automated scripts which download and install (via download.sh and install_downloads.sh used by my guides)
+
+I will occasionally update the repo to sync with Mieze's changes (after testing).
+
+
+### Downloads:
+
+Downloads are available on Bitbucket:
+
+https://bitbucket.org/RehabMan/os-x-intel-network/downloads
+
+
+### Original README follows:
+
 # IntelMausiEthernet
 OS X driver for Intel onboard LAN
 
