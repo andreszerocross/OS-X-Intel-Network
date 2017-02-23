@@ -15,7 +15,7 @@ I will occasionally update the repo to sync with Mieze's changes (after testing)
 
 Downloads are available on Bitbucket:
 
-https://bitbucket.org/RehabMan/os-x-intel-network/downloads
+https://bitbucket.org/RehabMan/os-x-intel-network/downloads/
 
 
 ### Original README follows:
