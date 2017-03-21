@@ -92,6 +92,11 @@ struct e1000_hw;
 #define E1000_DEV_ID_PCH_SPT_I219_LM2		0x15B7	/* SPT-H PCH */
 #define E1000_DEV_ID_PCH_SPT_I219_V2		0x15B8	/* SPT-H PCH */
 #define E1000_DEV_ID_PCH_LBG_I219_LM3		0x15B9	/* LBG PCH */
+//REVIEW_REHABMAN: added for 200-series i219 Ethernet
+#define E1000_DEV_ID_PCH_UPT_I219_V         0x15d6  /* Union Point */
+#define E1000_DEV_ID_PCH_UPT_I219_LM        0x15d7  /* Union Point */
+#define E1000_DEV_ID_PCH_UPT_I219_V2        0x15d8  /* Union Point */
+#define E1000_DEV_ID_PCH_UPT_I219_LM2       0x15e3  /* Union Point */
 
 #define E1000_REVISION_4	4
 
