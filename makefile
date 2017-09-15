@@ -1,6 +1,6 @@
 KEXT=IntelMausiEthernet.kext
 DIST=RehabMan-IntelMausiEthernet-v2
-BUILDDIR=./Build
+BUILDDIR=./Build/Products
 
 VERSION_ERA=$(shell ./print_version.sh)
 ifeq "$(VERSION_ERA)" "10.10-"
@@ -9,7 +9,7 @@ else
 	INSTDIR=/Library/Extensions
 endif
 
-OPTIONS:=$(OPTIONS) -target IntelMausiEthernetV2
+OPTIONS:=$(OPTIONS) -scheme IntelMausiEthernetV2
 
 ifeq ($(findstring 32,$(BITS)),32)
 OPTIONS:=$(OPTIONS) -arch i386
@@ -36,13 +36,13 @@ update_kernelcache:
 
 .PHONY: install_debug
 install_debug:
-	sudo cp -R ./Build/Debug/$(KEXT) $(INSTDIR)
+	sudo cp -R $(BUILDDIR)/Debug/$(KEXT) $(INSTDIR)
 	if [ "`which tag`" != "" ]; then sudo tag -a Purple $(INSTDIR)/$(KEXT); fi
 	make update_kernelcache
 
 .PHONY: install
 install:
-	sudo cp -R ./Build/Release/$(KEXT) $(INSTDIR)
+	sudo cp -R $(BUILDDIR)/Release/$(KEXT) $(INSTDIR)
 	if [ "`which tag`" != "" ]; then sudo tag -a Blue $(INSTDIR)/$(KEXT); fi
 	make update_kernelcache
 
@@ -50,8 +50,8 @@ install:
 distribute:
 	if [ -e ./Distribute ]; then rm -r ./Distribute; fi
 	mkdir ./Distribute
-	cp -R ./Build/Debug ./Distribute
-	cp -R ./Build/Release ./Distribute
+	cp -R $(BUILDDIR)/Debug ./Distribute
+	cp -R $(BUILDDIR)/Release ./Distribute
 	find ./Distribute -path *.DS_Store -delete
 	find ./Distribute -path *.dSYM -exec echo rm -r {} \; >/tmp/org.voodoo.rm.dsym.sh
 	chmod +x /tmp/org.voodoo.rm.dsym.sh
